@@ -48,6 +48,13 @@ A series of Python scripts that makes mining and modding Unity assets easier~
   1. `>python FillAlpha.py`
   2. Enter the path to an image or the folder containing all the images
 
+## RemoveMeta
+- Remove all the `.meta` files from a folder and its sub-folders
+- **Important:** This will cause the assets to malfunction, only use this when you know what you are doing.
+- **How to Use**
+  1. `>python RemoveMeta.py`
+  2. Enter the path to a folder containing all the assets
+
 # Notice
 - I'm not responsible for whatever happens to your files.
 - Read what each script does carefully.
