@@ -1,60 +1,41 @@
-# Unity-Assets-Utils
-A series of Python scripts that makes mining and modding Unity assets easier~
+# Unity Assets Utils
+A series of utilities that makes mining and modding Unity assets easier~
 
-## ByteTrimmer
-- Remove the leading bytes of all files in a folder, so that `AssetStudio` can read them.
-- Works for both normal Header with leading bytes, and normal Header with Dummy Header variants.
-- **How to Use**
-  1. `>python ByteTrimmer.py`
-  2. Enter the path to the folder containing all the assets
-  3. Files are edited in-place. If no Header is found, then the file is unchanged.
+## Intro
+Previously, the utilities were written in **Python**, which was rather slow.
+The new version is now rewritten in **C#**.
 
-## Separator
-- Separate all files in a folder into their own categories
-  - Included categories: `audio`, `mesh`, `texture`, `anim`, `shader`, `misc`
-- Does not guarantee to work, depending on how the game handles the assets.
-- **How to Use**
-  1. `>python Separator.py`
-  2. Enter the path to the folder containing all the assets
-  3. If no Header is found, then the file is not moved.
+You can download an executable built for x64 Windows from [Release](https://github.com/Haoming02/Unity-Assets-Utils/releases); 
+or clone the project and build it yourself; or just use the old Python version.
 
-## FlattenFolder
+When launching from the console, you can add `silent` to hide certain logs, or add `timer` to print out how long each operation took.
+
+#### Benchmark
+- Ran `ByteTrimmer` on a ~2GB folder with ~2000 files
+  - Old **Python** version took ~8 sec
+  - New **C#** version took ~1.6 sec
+  - Effectively **~5 times** faster
+
+## Modes
+For **C#**, you can choose the mode after entering a working directory; For **Python**, just use the respective script.
+
+### Flatten Folder
 - Move all files in sub-folders of a parent folder to the parent folder
 - The sub-folders are deleted afterwards
 - This has no depth limits. **Verify the path before proceeding!**
-- **How to Use**
-  1. `>python FlattenFolder.py`
-  2. Enter the path to the folder containing all the folders
-  3. Confirm the path then enter **YES**
 
-## Dedupe
-- Remove files in a new folder if files with the same name already exist in a old folder
-- **How to Use**
-  1. `>python Dedupe.py`
-  2. Enter the **new** folder
-  3. Enter the **old** folder
+### Byte Trimmer
+- Remove the leading bytes of all files in a folder, so that `AssetStudio` can read them
+- Works for both *"normal Header with leading bytes"* and *"normal Header with a dummy Header"* variants
 
-## Check
-- Print out all filenames of which content contains a specified filter word
-- Also print out its file size
-- **How to Use**
-  1. `>python Check.py`
-  2. Enter the path to the folder containing all the assets
-  3. Enter a **filter**
+### Separator
+- Separate all files in a folder into their own categories
+  - Included categories: `audio`, `mesh`, `texture`, `anim`, `shader`, `misc`
+- Does not guarantee to work. It depends on how the game handles the assets
+- If no Header is found, then the file is not moved
 
-## FillAlpha
-- Remove the Alpha channel of a single image, or all image files in a folder
-- **How to Use**
-  1. `>python FillAlpha.py`
-  2. Enter the path to an image or the folder containing all the images
+### Dedupe
+- Add `.old` to the filename for all files in a new folder that already existed in another folder
 
-## RemoveMeta
-- Remove all the `.meta` files from a folder and its sub-folders
-- **Important:** This will cause the assets to malfunction, only use this when you know what you are doing.
-- **How to Use**
-  1. `>python RemoveMeta.py`
-  2. Enter the path to a folder containing all the assets
-
-# Notice
-- I'm not responsible for whatever happens to your files.
-- Read what each script does carefully.
+### Find Filter
+- Print out the filename and its filesize for all files of which content contains a specified filter word
