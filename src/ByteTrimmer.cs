@@ -4,7 +4,7 @@ namespace Utils.UnityAssets
 {
     static class ByteTrimmer
     {
-        private const int threshold = 69420;
+        private const int threshold = 8192;
 
         private const string HEADER = "UnityFS";
         private static byte[] HeaderBytes => Encoding.UTF8.GetBytes(HEADER);

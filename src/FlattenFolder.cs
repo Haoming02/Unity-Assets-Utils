@@ -15,7 +15,7 @@
 
             UnityAssetsUtils.StartOperation();
 
-            var files = Directory.GetFiles(UnityAssetsUtils.WorkingDirectory, "*.*", SearchOption.AllDirectories);
+            var files = Directory.GetFiles(UnityAssetsUtils.WorkingDirectory, "*", SearchOption.AllDirectories);
             int l = files.Length;
 
             Task[] tasks = new Task[l];
