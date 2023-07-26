@@ -4,7 +4,7 @@
     {
         public static async Task Process()
         {
-            SetCacheDirectory(out string? cacheDirectory);
+            SetCacheDirectory(out string cacheDirectory);
 
             UnityAssetsUtils.StartOperation();
 
@@ -47,13 +47,13 @@
             cache = temp;
         }
 
-        private static void SetCacheDirectory(out string? cacheDirectory)
+        private static void SetCacheDirectory(out string cacheDirectory)
         {
-            cacheDirectory = null;
+            cacheDirectory = string.Empty;
 
             do
             {
-                if (cacheDirectory != null)
+                if (cacheDirectory != string.Empty)
                     Console.WriteLine("Invalid Input!");
 
                 Console.Write("Enter the Path to Cache: ");

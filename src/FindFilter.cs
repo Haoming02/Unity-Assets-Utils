@@ -8,23 +8,23 @@ namespace Utils.UnityAssets
         {
             Console.Write("\nEnter Filter: ");
 
-            string? input = Console.ReadLine()?.Trim();
+            string input = Console.ReadLine()?.Trim();
             byte[] filter = Encoding.UTF8.GetBytes(input);
 
-            bool recursive = UnityAssetsUtils.isSilent;
+            bool recursive = UnityAssetsUtils.IsSilent || UnityAssetsUtils.AltMode;
 
-            if (!UnityAssetsUtils.isSilent)
+            if (!UnityAssetsUtils.IsSilent && !UnityAssetsUtils.AltMode)
             {
                 Console.Write("\nRecursive [y/n]: ");
-                recursive = Console.ReadLine() == "y";
+                recursive = Console.ReadLine()?.Trim() == "y";
             }
 
             UnityAssetsUtils.StartOperation();
 
-            var files = recursive ? Directory.GetFiles(UnityAssetsUtils.WorkingDirectory, "*.*", SearchOption.AllDirectories) : Directory.GetFiles(UnityAssetsUtils.WorkingDirectory);
+            var files = Directory.GetFiles(UnityAssetsUtils.WorkingDirectory, "*.*", (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly));
             int l = files.Length;
 
-            Console.WriteLine($"\n{"[File Name]",-36}[File Size]");
+            Console.WriteLine($"\n{(UnityAssetsUtils.AltMode ? "[Folder Name]" : "[File Name]"),-36}  [File Size]");
 
             Task[] tasks = new Task[l];
 
@@ -35,10 +35,12 @@ namespace Utils.UnityAssets
                 tasks[i] = Task.Run(() =>
                 {
                     var data = File.ReadAllBytes(files[fileIndex]);
-                    if (LocateFilter(ref data, ref filter))
+                    if (Funcs.FindKey(ref data, filter))
                     {
                         var info = new FileInfo(files[fileIndex]);
-                        Console.WriteLine($"{info.Name,-36}{(float)info.Length / 1024:N2} KB");
+                        string key = (UnityAssetsUtils.AltMode ? Funcs.ConvolutedGetFolder(info.FullName) : info.Name);
+
+                        Console.WriteLine($"{key.Substring(0, Math.Min(key.Length, 36)),-36}  {(float)info.Length / 1024:N2} KB");
                     }
 
                     return;
@@ -48,17 +50,6 @@ namespace Utils.UnityAssets
             await Task.WhenAll(tasks);
             UnityAssetsUtils.StopOperation();
             UnityAssetsUtils.Pause(true);
-        }
-
-        private static bool LocateFilter(ref byte[] data, ref byte[] filter)
-        {
-            for (int i = 0; i < data.Length - filter.Length + 1; i++)
-            {
-                if (data.Skip(i).Take(filter.Length).SequenceEqual(filter))
-                    return true;
-            }
-
-            return false;
         }
     }
 }

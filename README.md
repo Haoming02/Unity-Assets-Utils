@@ -17,6 +17,19 @@ When launching from the console, you can add `silent` to hide certain logs, or a
   - Effectively **~5 times** faster
 
 ## Modes
+- **Normal:** Default behavior. Works for assets under a folder.
+- **Alt:** Specifically works for assets in the following structure:
+    ```
+    XXXXXXXX
+      | YYYYYY
+      |   | __data
+      |   | __info
+      | ZZZZZZ
+          | __data
+          | __info
+    ```
+
+## Operations
 For **C#**, you can choose the mode after entering a working directory; For **Python**, just use the respective script.
 
 ### Flatten Folder

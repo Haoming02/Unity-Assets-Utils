@@ -4,14 +4,17 @@ namespace Utils.UnityAssets
 {
     static class ByteTrimmer
     {
-        private const int threshold = 8192;
+        /// <summary>
+        /// Larger value takes longer to search but also safer...
+        /// </summary>
+        private const int threshold = 4096;
 
         private const string HEADER = "UnityFS";
         private static byte[] HeaderBytes => Encoding.UTF8.GetBytes(HEADER);
 
         public static async Task Process()
         {
-            if (!UnityAssetsUtils.isSilent)
+            if (!UnityAssetsUtils.IsSilent)
                 Console.WriteLine("\nTrimming Dummy Bytes...");
 
             UnityAssetsUtils.StartOperation();
@@ -32,7 +35,7 @@ namespace Utils.UnityAssets
 
                     if (index1 == -1)
                     {
-                        if (!UnityAssetsUtils.isSilent)
+                        if (!UnityAssetsUtils.IsSilent)
                             Console.WriteLine($"No Header Found! Skipping File: \"{Path.GetFileName(files[fileIndex])}\"...");
                         return;
                     }
