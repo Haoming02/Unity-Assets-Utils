@@ -2,20 +2,20 @@
 
 namespace Utils.UnityAssets
 {
-    static class ByteTrimmer
+    /// <summary>
+    /// Remove the leading dummy bytes of asset files
+    /// </summary>
+    public static class ByteTrimmer
     {
-        /// <summary>
-        /// Larger value takes longer to search but also safer...
-        /// </summary>
-        private const int threshold = 4096;
+        // Larger value takes longer to search for non-asset files; but also safer for real asset files
+        private const int threshold = 2048;
 
-        private const string HEADER = "UnityFS";
-        private static byte[] HeaderBytes => Encoding.UTF8.GetBytes(HEADER);
+        private static byte[] HeaderBytes => Encoding.UTF8.GetBytes(CommonFuncs.HEADER);
 
         public static async Task Process()
         {
             if (!UnityAssetsUtils.IsSilent)
-                Console.WriteLine("\nTrimming Dummy Bytes...");
+                Console.WriteLine("\n=== Trimming Dummy Bytes ===");
 
             UnityAssetsUtils.StartOperation();
 
@@ -24,49 +24,36 @@ namespace Utils.UnityAssets
 
             Task[] tasks = new Task[l];
 
-            for (int i = 0; i < l; i++)
+            for (int index = 0; index < l; index++)
             {
-                int fileIndex = i;
+                int i = index;
 
-                tasks[i] = Task.Run(() =>
+                tasks[index] = Task.Run(() =>
                 {
-                    var data = File.ReadAllBytes(files[fileIndex]);
-                    var index1 = FindHeader(ref data);
+                    var data = File.ReadAllBytes(files[i]);
 
-                    if (index1 == -1)
+                    int index1 = CommonFuncs.FindKey(ref data, HeaderBytes, 0, threshold);
+                    if (index1 < 0)
                     {
                         if (!UnityAssetsUtils.IsSilent)
-                            Console.WriteLine($"No Header Found! Skipping File: \"{Path.GetFileName(files[fileIndex])}\"...");
+                            Console.WriteLine($"\tNo Header Found! Skipping File: \"{Path.GetFileName(files[i])}\"...");
                         return;
                     }
 
-                    var index2 = FindHeader(ref data, index1 + 1);
+                    int index2 = CommonFuncs.FindKey(ref data, HeaderBytes, index1 + HeaderBytes.Length, threshold);
 
                     if (index2 > 0)
-                        File.WriteAllBytes(files[fileIndex], data.Skip(index2).ToArray());
+                        File.WriteAllBytes(files[i], data.Skip(index2).ToArray());
                     else if (index1 > 0)
-                        File.WriteAllBytes(files[fileIndex], data.Skip(index1).ToArray());
-
-                    return;
+                        File.WriteAllBytes(files[i], data.Skip(index1).ToArray());
                 });
             }
 
             await Task.WhenAll(tasks);
+
             Console.WriteLine("Headers Fixed!");
             UnityAssetsUtils.StopOperation();
             UnityAssetsUtils.Pause();
-        }
-
-        private static int FindHeader(ref byte[] data, int from = 0)
-        {
-            int limit = Math.Min(data.Length - HeaderBytes.Length + 1, threshold);
-            for (int i = from; i < limit; i++)
-            {
-                if (data.Skip(i).Take(HeaderBytes.Length).SequenceEqual(HeaderBytes))
-                    return i;
-            }
-
-            return -1;
         }
     }
 }

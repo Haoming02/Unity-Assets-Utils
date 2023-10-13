@@ -2,7 +2,10 @@
 
 namespace Utils.UnityAssets
 {
-    static class FindFilter
+    /// <summary>
+    /// List out all assets that contain specified filter
+    /// </summary>
+    public static class FindFilter
     {
         public static async Task Process()
         {
@@ -11,36 +14,31 @@ namespace Utils.UnityAssets
             string input = Console.ReadLine()?.Trim();
             byte[] filter = Encoding.UTF8.GetBytes(input);
 
-            bool recursive = UnityAssetsUtils.IsSilent || UnityAssetsUtils.AltMode;
-
-            if (!UnityAssetsUtils.IsSilent && !UnityAssetsUtils.AltMode)
-            {
-                Console.Write("\nRecursive [y/n]: ");
-                recursive = Console.ReadLine()?.Trim() == "y";
-            }
+            Console.Write("\nRecursive [y/n]: ");
+            bool recursive = Console.ReadLine()?.Trim() != "n";
 
             UnityAssetsUtils.StartOperation();
 
             var files = Directory.GetFiles(UnityAssetsUtils.WorkingDirectory, "*.*", (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly));
             int l = files.Length;
 
-            Console.WriteLine($"\n{(UnityAssetsUtils.AltMode ? "[Folder Name]" : "[File Name]"),-36}  [File Size]");
+            Console.WriteLine($"\n{(UnityAssetsUtils.IsAlt ? "[Folder Name]" : "[File Name]"),-36}  [File Size]");
 
             Task[] tasks = new Task[l];
 
-            for (int i = 0; i < l; i++)
+            for (int index = 0; index < l; index++)
             {
-                int fileIndex = i;
+                int i = index;
 
-                tasks[i] = Task.Run(() =>
+                tasks[index] = Task.Run(() =>
                 {
-                    var data = File.ReadAllBytes(files[fileIndex]);
-                    if (Funcs.FindKey(ref data, filter))
+                    var data = File.ReadAllBytes(files[i]);
+                    if (CommonFuncs.FindKey(ref data, filter) > 0)
                     {
-                        var info = new FileInfo(files[fileIndex]);
-                        string key = (UnityAssetsUtils.AltMode ? Funcs.ConvolutedGetFolder(info.FullName) : info.Name);
+                        var info = new FileInfo(files[i]);
+                        string key = (UnityAssetsUtils.IsAlt ? CommonFuncs.GetFolder(info.FullName) : info.Name);
 
-                        Console.WriteLine($"{key.Substring(0, Math.Min(key.Length, 36)),-36}  {(float)info.Length / 1024:N2} KB");
+                        Console.WriteLine($"{key[..Math.Min(key.Length, 36)],-36}  {(float)info.Length / 1024:N2} KB");
                     }
 
                     return;
@@ -48,6 +46,7 @@ namespace Utils.UnityAssets
             }
 
             await Task.WhenAll(tasks);
+
             UnityAssetsUtils.StopOperation();
             UnityAssetsUtils.Pause(true);
         }

@@ -1,17 +1,21 @@
-import sys
 import cv2
 import os
 
-currentPath = str(input('Path to Assets: '))
+def process(path:str):
+	if os.path.isfile(path):
+		rgb = cv2.imread(path, cv2.IMREAD_COLOR)
+		cv2.imwrite(path, rgb)
+	else:
+		for FILE in os.listdir(path):
+			if '.py' in FILE or not os.path.isfile(os.path.join(path, FILE)):
+				continue
 
-if os.path.isfile(currentPath):
-	rgb = cv2.imread(currentPath)
-	cv2.imwrite(currentPath, rgb)
+			rgb = cv2.imread(f'{path}/{FILE}', cv2.IMREAD_COLOR)
+			cv2.imwrite(f'{path}/{FILE}', rgb)
 
-else:
-	for FILE in os.listdir(currentPath):
-		if '.py' in FILE or not os.path.isfile(os.path.join(currentPath, FILE)):
-			continue
+def main():
+    path = str(input('Path to Assets: '))
+    process(path)
 
-		rgb = cv2.imread(currentPath + '/' + FILE)
-		cv2.imwrite(currentPath + '/' + FILE, rgb)
+if __name__ == '__main__':
+    main()

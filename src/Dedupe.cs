@@ -1,68 +1,93 @@
 ﻿namespace Utils.UnityAssets
 {
-    static class Dedupe
+    /// <summary>
+    /// Delete files already found in another cache Folder
+    /// </summary>
+    public static class Dedupe
     {
+        private static string subfolder;
+
         public static async Task Process()
         {
-            SetCacheDirectory(out string cacheDirectory);
+            string cacheDirectory = SetCacheDirectory();
+
+            if (cacheDirectory == null)
+            {
+                Console.WriteLine("Operation Canceled...");
+                UnityAssetsUtils.Pause();
+                return;
+            }
+
+            if (cacheDirectory.Equals(UnityAssetsUtils.WorkingDirectory))
+            {
+                Console.WriteLine("Bruh?");
+                UnityAssetsUtils.Pause();
+                return;
+            }
 
             UnityAssetsUtils.StartOperation();
 
-            CacheReferenceFiles(cacheDirectory, out string[] cache);
+            CacheReferenceFiles(cacheDirectory, out var cache);
+            CreateFolder();
 
             var files = Directory.GetFiles(UnityAssetsUtils.WorkingDirectory);
             int l = files.Length;
 
             Task[] tasks = new Task[l];
 
-            for (int i = 0; i < l; i++)
+            for (int index = 0; index < l; index++)
             {
-                int fileIndex = i;
+                int i = index;
 
-                tasks[i] = Task.Run(() =>
+                tasks[index] = Task.Run(() =>
                 {
-                    if (cache.Contains(Path.GetFileName(files[fileIndex])))
-                        File.Move(files[fileIndex], files[fileIndex] + ".old");
+                    if (cache.Contains(Path.GetFileName(files[i])))
+                        File.Move(files[i], Path.Combine(subfolder, Path.GetFileName(files[i])));
                 });
             }
 
             await Task.WhenAll(tasks);
+
             Console.WriteLine("Duplicate Files Identified!");
             UnityAssetsUtils.StopOperation();
             UnityAssetsUtils.Pause();
         }
 
-        private static void CacheReferenceFiles(string cacheDirectory, out string[] cache)
+        private static void CacheReferenceFiles(string cacheDirectory, out List<string> cache)
         {
+            cache = new List<string>();
             var files = Directory.GetFiles(cacheDirectory);
-            int l = files.Length;
 
-            string[] temp = new string[l];
-
-            Parallel.For(0, l, index =>
-            {
-                temp[index] = Path.GetFileName(files[index]);
-            });
-
-            cache = temp;
+            foreach (string file in files)
+                cache.Add(Path.GetFileName(file));
         }
 
-        private static void SetCacheDirectory(out string cacheDirectory)
+        private static void CreateFolder()
         {
-            cacheDirectory = string.Empty;
+            subfolder = Path.Combine(UnityAssetsUtils.WorkingDirectory, "duplicated");
+            if (!Directory.Exists(subfolder))
+                Directory.CreateDirectory(subfolder);
+        }
 
+        private static string SetCacheDirectory()
+        {
             do
             {
-                if (cacheDirectory != string.Empty)
-                    Console.WriteLine("Invalid Input!");
+                Console.Write("Enter the Path to Assets (Enter \"return\" to Cancel): ");
 
-                Console.Write("Enter the Path to Cache: ");
-                cacheDirectory = Console.ReadLine();
+                string input = Console.ReadLine()?.Trim();
 
-                if (cacheDirectory == null)
-                    Environment.Exit(-1);
-
-            } while (!Directory.Exists(cacheDirectory));
+                if (input.Length > UnityAssetsUtils.SAFE_GUARD && Directory.Exists(input))
+                    return input;
+                else if (input.ToLower().Contains("return"))
+                    return null;
+                else
+                {
+                    Console.WriteLine("Invalid Path...");
+                    UnityAssetsUtils.Pause();
+                    Console.Clear();
+                }
+            } while (true);
         }
     }
 }

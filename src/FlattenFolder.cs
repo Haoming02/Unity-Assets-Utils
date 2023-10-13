@@ -1,45 +1,38 @@
 ﻿namespace Utils.UnityAssets
 {
-    static class FlattenFolder
+    /// <summary>
+    /// Move all files inside subfolders into the working directory
+    /// </summary>
+    public static class FlattenFolder
     {
-        public static async Task Process()
+        public static async Task<bool> Process()
         {
-            Console.WriteLine($"=== Type YES to Flatten Folder \"{UnityAssetsUtils.WorkingDirectory}\" ===");
+            Console.WriteLine($"!!! Type YES to Flatten Folder \"{UnityAssetsUtils.WorkingDirectory}\" !!!");
+            Console.WriteLine($"[IMPORTANT] This operation is NOT reversible!");
             Console.Write("Confirm: ");
 
             if (Console.ReadLine()?.Trim() != "YES")
             {
                 Console.WriteLine("Operation Canceled...");
-                return;
+                UnityAssetsUtils.Pause();
+                return false;
             }
 
             UnityAssetsUtils.StartOperation();
 
-            var files = Directory.GetFiles(UnityAssetsUtils.WorkingDirectory, "*", SearchOption.AllDirectories);
-            int l = files.Length;
+            var files = Directory.GetFiles(UnityAssetsUtils.WorkingDirectory, UnityAssetsUtils.IsAlt ? "__data" : "*", SearchOption.AllDirectories);
 
+            int l = files.Length;
             Task[] tasks = new Task[l];
 
-            for (int i = 0; i < l; i++)
+            for (int index = 0; index < l; index++)
             {
-                int fileIndex = i;
+                int i = index;
 
-                tasks[i] = Task.Run(() =>
+                tasks[index] = Task.Run(() =>
                 {
-                    if (UnityAssetsUtils.AltMode)
-                    {
-                        if (files[fileIndex].Contains("__data"))
-                            File.Move(files[fileIndex], Path.Combine(UnityAssetsUtils.WorkingDirectory, "__" + Funcs.ConvolutedGetFolder(files[fileIndex])));
-                        else
-                            File.Delete(files[fileIndex]);
-                    }
-                    else
-                    {
-                        File.Move(files[fileIndex], Path.Combine(UnityAssetsUtils.WorkingDirectory, Path.GetFileName(files[fileIndex])));
-                    }
-
-                    // Console.WriteLine($"Moving from \"{files[fileIndex]}\" to \"{Path.Combine(UnityAssetsUtils.WorkingDirectory, Path.GetFileName(files[fileIndex]))}\"");
-                    return;
+                    // Console.WriteLine($"Moving from \"{files[i]}\" to \"{Path.Combine(UnityAssetsUtils.WorkingDirectory, Path.GetFileName(files[i]))}\"");
+                    File.Move(files[i], Path.Combine(UnityAssetsUtils.WorkingDirectory, UnityAssetsUtils.IsAlt ? "__" + CommonFuncs.GetFolder(files[i]) : Path.GetFileName(files[i])));
                 });
             }
 
@@ -49,13 +42,16 @@
 
             foreach (var folder in folders)
             {
-                // Console.WriteLine($"Deleting \"{folder}\"");
-                Directory.Delete(folder, UnityAssetsUtils.AltMode);
+                if (!UnityAssetsUtils.IsSilent)
+                    Console.WriteLine($"Deleting Folder \"{folder}\"");
+                Directory.Delete(folder, UnityAssetsUtils.IsAlt);
             }
 
             Console.WriteLine("Folder Flattened!");
             UnityAssetsUtils.StopOperation();
             UnityAssetsUtils.Pause();
+
+            return true;
         }
     }
 }
