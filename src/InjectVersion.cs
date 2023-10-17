@@ -27,6 +27,10 @@ namespace Utils.UnityAssets
                 try
                 {
                     UnityPy = Py.Import("UnityPy");
+                    string[] version = UnityPy.__version__.split('.');
+
+                    if (int.Parse(version[0]) != 1 || int.Parse(version[1]) < 10 || int.Parse(version[2]) < 5)
+                        Console.WriteLine("[Warning] Older version of UnityPy detected. This function may not work correctly...");
                 }
                 catch (PythonException)
                 {
@@ -48,7 +52,9 @@ namespace Utils.UnityAssets
                     foreach (var obj in env.assets)
                     {
                         obj.unity_version = UnityVersion;
-                        obj.save();
+
+                        try { obj.save(); }
+                        catch { continue; }
                     }
 
                     byte[] data = env.file.save();

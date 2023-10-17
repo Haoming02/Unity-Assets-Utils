@@ -8,7 +8,7 @@ namespace Utils.UnityAssets
     public static class ByteTrimmer
     {
         // Larger value takes longer to search for non-asset files; but also safer for real asset files
-        private const int threshold = 2048;
+        private const int threshold = 4096;
 
         private static byte[] HeaderBytes => Encoding.UTF8.GetBytes(CommonFuncs.HEADER);
 

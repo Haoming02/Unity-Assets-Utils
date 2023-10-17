@@ -44,7 +44,7 @@
             {
                 if (!UnityAssetsUtils.IsSilent)
                     Console.WriteLine($"Deleting Folder \"{folder}\"");
-                Directory.Delete(folder, UnityAssetsUtils.IsAlt);
+                Directory.Delete(folder, true);
             }
 
             Console.WriteLine("Folder Flattened!");
