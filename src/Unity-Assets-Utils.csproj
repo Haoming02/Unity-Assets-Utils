@@ -8,8 +8,4 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="pythonnet" Version="3.0.3" />
-  </ItemGroup>
-
 </Project>

@@ -1,7 +1,4 @@
-﻿using Python.Runtime;
-using uint8 = System.Byte;
-
-namespace Utils.UnityAssets
+﻿namespace Utils.UnityAssets
 {
     /// <summary>
     /// Main Console UI
@@ -10,22 +7,18 @@ namespace Utils.UnityAssets
     {
         public static string WorkingDirectory { get; private set; }
 
-        private static uint8 currentMode;
-        private static readonly Dictionary<string, uint8> AvailableModes = new()
+        private static AvailableModes currentMode;
+        private enum AvailableModes
         {
-            {"Byte Trimmer", 1},
-            {"Dedupe", 2},
-            {"Flatten Folder", 3},
-            {"Find Filter", 4},
-            {"Fill Alpha", 5},
-            {"Inject Version", 6},
-            {"Separator", 7},
-            {"Change Directory", 8},
-            {"Toggle Mode", 9},
-            {"Exit", 0}
+            Byte_Trimmer = 1,
+            Dedupe = 2,
+            Flatte_Folder = 3,
+            Find_Filter = 4,
+            Separator = 5,
+            Change_Directory = 6,
+            Toggle_Mode = 7,
+            Exit = 0
         };
-
-        private const uint8 INVALID = 255;
 
         public static bool IsSilent { get; private set; }
         public static bool IsAlt { get; private set; }
@@ -35,24 +28,12 @@ namespace Utils.UnityAssets
 
         static async Task Main(string[] args)
         {
-            AppContext.SetSwitch("Switch.System.Runtime.Serialization.UseUnsafeTypeForwarders", true);
-
             Console.WriteLine("===== Welcome to Unity Assets Utilities =====");
             WorkingDirectory = string.Empty;
 
-            IsSilent = false;
-            IsAlt = false;
-            useTimer = false;
-
-            foreach (string arg in args)
-            {
-                if (arg.ToLower().Contains("silent"))
-                    IsSilent = true;
-                else if (arg.ToLower().Contains("alt"))
-                    IsAlt = true;
-                else if (arg.ToLower().Contains("timer"))
-                    useTimer = true;
-            }
+            IsSilent = args.Contains("silent");
+            IsAlt = args.Contains("alt");
+            useTimer = args.Contains("timer");
 
             if (useTimer)
             {
@@ -60,94 +41,91 @@ namespace Utils.UnityAssets
                 Console.WriteLine("\tLaunching with Timer...");
             }
 
-            currentMode = INVALID;
-
             WorkingDirectory = SetDirectory(true);
+
             await ProgramLoop();
+        }
+
+        private static void PrintFunctions()
+        {
+            foreach (var val in Enum.GetValues(typeof(AvailableModes)))
+            {
+                if ((int)val > 0)
+                    Console.WriteLine($"[{(int)val}] {val.ToString().Replace('_', ' ')}");
+            }
+
+            Console.WriteLine("[0] Exit");
         }
 
         private static async Task ProgramLoop()
         {
+            bool exit = false;
+
             do
             {
                 Console.Clear();
                 Console.WriteLine($"Working Directory: \"{WorkingDirectory}\"");
                 Console.WriteLine($"Mode: {(IsAlt ? "Alt." : "Normal")}\n");
 
-                foreach (var pair in AvailableModes)
-                    Console.WriteLine($"[{pair.Value}] {pair.Key}");
+                PrintFunctions();
 
                 Console.Write("\nChoose a Function: ");
 
-                try { currentMode = uint8.Parse(Console.ReadLine()?.Trim()); }
-                catch { currentMode = INVALID; }
-
-                if (currentMode >= AvailableModes.Count)
+                if (!Enum.TryParse(Console.ReadLine()?.Trim(), out currentMode) || !Enum.IsDefined(typeof(AvailableModes), currentMode))
                 {
                     Console.WriteLine("Invalid Input!");
                     Pause();
                     continue;
                 }
 
-                if (currentMode == AvailableModes["Byte Trimmer"])
+                switch (currentMode)
                 {
-                    await ByteTrimmer.Process(); continue;
-                }
-                if (currentMode == AvailableModes["Dedupe"])
-                {
-                    await Dedupe.Process(); continue;
-                }
-                if (currentMode == AvailableModes["Find Filter"])
-                {
-                    await FindFilter.Process(); continue;
-                }
-                if (currentMode == AvailableModes["Fill Alpha"])
-                {
-                    await Task.Run(() => { FillAlpha.Process(); }); continue;
-                }
-                if (currentMode == AvailableModes["Flatten Folder"])
-                {
-                    if (await FlattenFolder.Process())
-                    {
-                        if (IsAlt) IsAlt = false;
-                    }
-                    continue;
-                }
-                if (currentMode == AvailableModes["Inject Version"])
-                {
-                    await InjectVersion.Process(); continue;
-                }
-                if (currentMode == AvailableModes["Separator"])
-                {
-                    await Separator.Process(); continue;
-                }
-                if (currentMode == AvailableModes["Change Directory"])
-                {
-                    WorkingDirectory = SetDirectory();
-                    if (IsAlt) IsAlt = false;
-                    continue;
-                }
-                if (currentMode == AvailableModes["Toggle Mode"])
-                {
-                    IsAlt = !IsAlt; continue;
-                }
-            } while (currentMode != AvailableModes["Exit"]);
+                    default:
+                        throw new SystemException();
 
-            try
-            {
-                PythonEngine.Shutdown();
-            }
-            catch
-            {
-                Console.WriteLine("Python Closed...");
-            }
-            finally
-            {
-                Environment.Exit(0);
-            }
+                    case AvailableModes.Byte_Trimmer:
+                        await ByteTrimmer.Process();
+                        break;
+
+                    case AvailableModes.Dedupe:
+                        await Dedupe.Process();
+                        break;
+
+                    case AvailableModes.Find_Filter:
+                        await FindFilter.Process();
+                        break;
+
+                    case AvailableModes.Flatte_Folder:
+                        if (await FlattenFolder.Process())
+                            if (IsAlt) IsAlt = false;
+                        break;
+
+                    case AvailableModes.Separator:
+                        await Separator.Process();
+                        break;
+
+                    case AvailableModes.Change_Directory:
+                        WorkingDirectory = SetDirectory();
+                        if (IsAlt) IsAlt = false;
+                        break;
+
+                    case AvailableModes.Toggle_Mode:
+                        IsAlt = !IsAlt;
+                        break;
+
+                    case AvailableModes.Exit:
+                        exit = true;
+                        break;
+                }
+            } while (!exit);
+
+            Environment.Exit(0);
+            return;
         }
 
-        // Prevent accidentally messing up the system root folder
+        /// <summary>
+        /// Prevent accidentally messing up a system root folder
+        /// </summary>
         public const int SAFE_GUARD = 4;
 
         private static string SetDirectory(bool init = false)
@@ -163,7 +141,7 @@ namespace Utils.UnityAssets
 
                 if (input.Length > SAFE_GUARD && Directory.Exists(input))
                     return input;
-                else if (!init && input.ToLower().Contains("return"))
+                else if (!init && input.ToLower().Equals("return"))
                     return WorkingDirectory;
                 else
                 {
@@ -179,7 +157,7 @@ namespace Utils.UnityAssets
         {
             if (!useTimer) return;
             Timer.Stop();
-            Console.WriteLine($"Took: {Timer.ElapsedMilliseconds / 1000.0f:N4}s");
+            Console.WriteLine($"\tTook: {Timer.ElapsedMilliseconds / 1000.0f:N4}s");
         }
 
         public static void Pause(bool force = false)
