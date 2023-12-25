@@ -1,28 +1,29 @@
 <h1 align="center">C# Implementation</h1>
-
-A series of .NET scripts that make mining Unity assets easier~
+<p align="center">A series of .NET scripts that make datamining Unity assets easier~</p>
 
 ### Modes
-- **Normal:** Default behavior. Works for files under a folder.
-- **Alt:** Created specifically for `FlattenFolder` to work for assets in the following structure:
+- **Normal:** Default behavior. Works for every file inside the given folder.
+- **Alt:** Specifically works for assets in the following structure:
     ```
     XXXXXX
-     |- YYYY
+     |  YYYY
      |   | __data
      |   | __info
      |
-     |- ZZZZ
+     |  ZZZZ
          | __data
          | __info
     ```
-    - Has no effect on other functions, as such you should run `FlattenFolder` first.
+
+> **Alt.** has no effect on most other functions. Therefore, you should run `FlattenFolder` first.
 
 ### Args
-If you launch the program using console, you can optionally add `silent` to hide certain logs; or add `timer` to print out the time each operation took; or add `alt` to directly launch in Alt mode.
+If you launch the program using console, you can optionally add:
+- **silent** to hide certain logs
+- **timer** to print out the time each operation took
+- **alt** to directly launch in `Alt.` mode.
 
-<h2 align="center">Functions</h2>
-
-> All the functions below will work on every file inside the specified folder.
+## Functions
 
 ### Byte Trimmer
 - Remove the leading dummy bytes, so that `AssetStudio` can read the file.
@@ -30,17 +31,18 @@ If you launch the program using console, you can optionally add `silent` to hide
 - Files are edited in-place. If no Header is found, then the file is skipped.
 
 ### Dedupe
-- Remove files in the target folder, if files with the same name already exist in an old cache folder.
+- Remove files in the new target folder, if files with the same name already exist in another old cache folder.
 
 ### Find Filter
 - Print out the filename and file size of all files that contain a specified filter.
 
+### Find File
+- Print out the filenames and folder names that contain a specified filter.
+
 ### Flatten Folder
 - Move all files inside the sub-folders of the target folder, to the target folder.
 - The sub-folders are then deleted afterwards.
-- **Warning!** This operation has no depth limit. **Verify the path before proceeding!**
+- **Warning! This operation has no depth limit. Verify the path before proceeding!**
 
 ### Separator
-- ~~Attempt to~~ separate all files into their respective categories.
-- Doesn't really work most of the time... It depends on how the game handles the assets.
-- You can use `FlattenFolder` to reverse this operation...
+- Move all non-asset files inside a sub-folder
