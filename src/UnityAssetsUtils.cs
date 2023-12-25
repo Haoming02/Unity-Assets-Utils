@@ -42,11 +42,12 @@
             }
 
             WorkingDirectory = SetDirectory(true);
+            CheckStructure();
 
             await ProgramLoop();
         }
 
-        private static void PrintFunctions()
+        private static void ListFunctions()
         {
             foreach (var val in Enum.GetValues(typeof(AvailableModes)))
             {
@@ -55,6 +56,19 @@
             }
 
             Console.WriteLine("[0] Exit");
+        }
+
+        private static bool FunctionSelection()
+        {
+            string id = Console.ReadLine()?.Trim();
+
+            if (!Enum.TryParse(id, out currentMode))
+                return false;
+
+            if (!Enum.IsDefined(typeof(AvailableModes), currentMode))
+                return false;
+
+            return true;
         }
 
         private static async Task ProgramLoop()
@@ -67,11 +81,11 @@
                 Console.WriteLine($"Working Directory: \"{WorkingDirectory}\"");
                 Console.WriteLine($"Mode: {(IsAlt ? "Alt." : "Normal")}\n");
 
-                PrintFunctions();
+                ListFunctions();
 
                 Console.Write("\nChoose a Function: ");
 
-                if (!Enum.TryParse(Console.ReadLine()?.Trim(), out currentMode) || !Enum.IsDefined(typeof(AvailableModes), currentMode))
+                if (!FunctionSelection())
                 {
                     Console.WriteLine("Invalid Input!");
                     Pause();
@@ -107,6 +121,7 @@
                     case AvailableModes.Change_Directory:
                         WorkingDirectory = SetDirectory();
                         if (IsAlt) IsAlt = false;
+                        CheckStructure();
                         break;
 
                     case AvailableModes.Toggle_Mode:
@@ -137,20 +152,36 @@
                 else
                     Console.Write("Enter the Path to Assets (Enter \"return\" to Cancel): ");
 
-                string input = Console.ReadLine()?.Trim();
+                string input = Console.ReadLine()?.Trim('"').Trim();
 
                 if (input.Length > SAFE_GUARD && Directory.Exists(input))
                     return input;
                 else if (!init && input.ToLower().Equals("return"))
                     return WorkingDirectory;
-                else
-                {
-                    Console.WriteLine("Invalid Path...");
-                    Pause();
-                    Console.Clear();
-                }
+
+                Console.WriteLine("Invalid Path...");
+                Pause();
+                Console.Clear();
             } while (true);
         }
+
+        private static void CheckStructure()
+        {
+            bool maybeAlt = CommonFuncs.DetectStructure();
+
+            if (maybeAlt && !IsAlt)
+            {
+                Console.WriteLine("\n\tWorkingDirectory seems to be in Alt. structure;\n\tRecommended to switch mode with [7] first!\n");
+                Pause();
+            }
+
+            if (!maybeAlt && IsAlt)
+            {
+                Console.WriteLine("\n\tWorkingDirectory doesn't seems to be in Alt. structure...\n\tRecommended to switch mode with [7] first!\n");
+                Pause();
+            }
+        }
+
 
         public static void StartOperation() { if (useTimer) Timer.Start(); }
         public static void StopOperation()

@@ -1,4 +1,6 @@
-﻿namespace Utils.UnityAssets
+﻿using System.Text;
+
+namespace Utils.UnityAssets
 {
     /// <summary>
     /// Some common functions...
@@ -7,17 +9,33 @@
     {
         public const string HEADER = "UnityFS";
 
-        public static bool VerifyHeader(string path)
+        private static byte[] _headerBytes = null;
+        public static byte[] HeaderBytes
         {
-            using (var r = new StreamReader(path))
+            get
             {
-                var buffer = new char[HEADER.Length];
-                r.ReadBlock(buffer, 0, HEADER.Length);
-
-                return buffer.SequenceEqual(HEADER);
+                _headerBytes ??= Encoding.UTF8.GetBytes(HEADER);
+                return _headerBytes;
             }
         }
 
+        /// <summary>
+        /// Check if the Unity asset header exists in the file
+        /// </summary>
+        /// <returns><b>True</b> if exists;<br/><b>False</b> otherwise</returns>
+        public static bool VerifyHeader(string path)
+        {
+            var buffer = new char[HEADER.Length];
+
+            using (var r = new StreamReader(path))
+                r.ReadBlock(buffer, 0, HEADER.Length);
+
+            return buffer.SequenceEqual(HEADER);
+        }
+
+        /// <summary>
+        /// Return the name of the folder that the given path is in
+        /// </summary>
         public static string GetFolder(string path)
         {
             string dir = Path.GetDirectoryName(path);
@@ -26,6 +44,10 @@
             return folders[^1];
         }
 
+        /// <summary>
+        /// Check if a given filter exists in the data
+        /// </summary>
+        /// <returns>Index of the filter if exists;<br/><b>-1</b> otherwise</returns>
         public static int FindKey(ref byte[] data, byte[] filter, int from = 0, int threshold = int.MaxValue)
         {
             int dataLength = data.Length;
@@ -39,6 +61,53 @@
             }
 
             return -1;
+        }
+
+        /// <summary>
+        /// Automatically detects if the WorkingDirectory is in Alt. structure
+        /// </summary>
+        /// <returns><b>True</b> if so;<br/><b>False</b> otherwise</returns>
+        public static bool DetectStructure(byte limit = 4)
+        {
+            var folders = Directory.EnumerateDirectories(UnityAssetsUtils.WorkingDirectory);
+            byte i = 0;
+
+            foreach (var folder in folders)
+            {
+                if (RecursiveFolderCheck(folder, limit))
+                    return true;
+
+                i++;
+
+                if (i > limit)
+                    break;
+            }
+
+            return false;
+        }
+
+        private static bool RecursiveFolderCheck(string folder, byte limit)
+        {
+            var data = File.Exists(Path.Combine(folder, "__data"));
+            var info = File.Exists(Path.Combine(folder, "__info"));
+            if (data && info)
+                return true;
+
+            byte i = 0;
+
+            var subfolders = Directory.EnumerateDirectories(folder);
+            foreach (var subfolder in subfolders)
+            {
+                if (RecursiveFolderCheck(subfolder, limit))
+                    return true;
+
+                i++;
+
+                if (i > limit)
+                    break;
+            }
+
+            return false;
         }
     }
 }
