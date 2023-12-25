@@ -10,14 +10,15 @@
         private static AvailableModes currentMode;
         private enum AvailableModes
         {
+            Exit = 0,
             Byte_Trimmer = 1,
-            Dedupe = 2,
-            Flatte_Folder = 3,
-            Find_Filter = 4,
+            Flatte_Folder = 2,
+            Find_Filter = 3,
+            Find_File = 4,
             Separator = 5,
-            Change_Directory = 6,
-            Toggle_Mode = 7,
-            Exit = 0
+            Dedupe = 6,
+            Change_Directory = 7,
+            Toggle_Mode = 8,
         };
 
         public static bool IsSilent { get; private set; }
@@ -109,6 +110,10 @@
                         await FindFilter.Process();
                         break;
 
+                    case AvailableModes.Find_File:
+                        FindFile.Process();
+                        break;
+
                     case AvailableModes.Flatte_Folder:
                         if (await FlattenFolder.Process())
                             if (IsAlt) IsAlt = false;
@@ -171,13 +176,13 @@
 
             if (maybeAlt && !IsAlt)
             {
-                Console.WriteLine("\n\tWorkingDirectory seems to be in Alt. structure;\n\tRecommended to switch mode with [7] first!\n");
+                Console.WriteLine($"\n\tWorkingDirectory seems to be in Alt. structure;\n\tRecommended to switch mode with [{(int)AvailableModes.Toggle_Mode}] first!\n");
                 Pause();
             }
 
             if (!maybeAlt && IsAlt)
             {
-                Console.WriteLine("\n\tWorkingDirectory doesn't seems to be in Alt. structure...\n\tRecommended to switch mode with [7] first!\n");
+                Console.WriteLine($"\n\tWorkingDirectory doesn't seems to be in Alt. structure...\n\tRecommended to switch mode with [{(int)AvailableModes.Toggle_Mode}] first!\n");
                 Pause();
             }
         }

@@ -11,7 +11,7 @@
             Console.WriteLine($"[IMPORTANT] This operation is NOT reversible!");
             Console.Write("Confirm: ");
 
-            if (Console.ReadLine()?.Trim() != "YES")
+            if (!(Console.ReadLine()?.Trim()).Equals("YES"))
             {
                 Console.WriteLine("Operation Canceled...");
                 UnityAssetsUtils.Pause();
@@ -32,7 +32,7 @@
                 tasks[index] = Task.Run(() =>
                 {
                     // Console.WriteLine($"Moving from \"{files[i]}\" to \"{Path.Combine(UnityAssetsUtils.WorkingDirectory, Path.GetFileName(files[i]))}\"");
-                    File.Move(files[i], Path.Combine(UnityAssetsUtils.WorkingDirectory, UnityAssetsUtils.IsAlt ? "__" + CommonFuncs.GetFolder(files[i]) : Path.GetFileName(files[i])));
+                    File.Move(files[i], Path.Combine(UnityAssetsUtils.WorkingDirectory, UnityAssetsUtils.IsAlt ? $"__{CommonFuncs.GetFolder(files[i])}" : Path.GetFileName(files[i])));
                 });
             }
 

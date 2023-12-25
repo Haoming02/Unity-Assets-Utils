@@ -7,6 +7,20 @@ namespace Utils.UnityAssets
     /// </summary>
     public static class FindFilter
     {
+        private const int ColumnWidth = 37;
+
+        private static async Task FindTask(string path, byte[] filter)
+        {
+            var data = await File.ReadAllBytesAsync(path);
+            if (CommonFuncs.FindKey(ref data, filter) > 0)
+            {
+                var info = new FileInfo(path);
+                string key = (UnityAssetsUtils.IsAlt ? CommonFuncs.GetFolder(info.FullName) : info.Name);
+
+                Console.WriteLine($"{CommonFuncs.TrimFilePath(key, ColumnWidth),-ColumnWidth}  {(float)info.Length / 1024:N2} KB");
+            }
+        }
+
         public static async Task Process()
         {
             Console.Write("\nEnter Filter: ");
@@ -19,34 +33,22 @@ namespace Utils.UnityAssets
 
             UnityAssetsUtils.StartOperation();
 
-            var files = Directory.GetFiles(UnityAssetsUtils.WorkingDirectory, "*.*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+            var files = Directory.GetFiles(UnityAssetsUtils.WorkingDirectory, "*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
             int l = files.Length;
 
-            Console.WriteLine($"\n{(UnityAssetsUtils.IsAlt ? "[Folder Name]" : "[File Name]"),-36}  [File Size]");
+            Console.WriteLine($"\n{(UnityAssetsUtils.IsAlt ? "[Folder Name]" : "[File Name]"),-ColumnWidth}  [File Size]");
 
             Task[] tasks = new Task[l];
 
-            for (int index = 0; index < l; index++)
+            for (int i = 0; i < l; i++)
             {
-                int i = index;
-
-                tasks[index] = Task.Run(() =>
-                {
-                    var data = File.ReadAllBytes(files[i]);
-                    if (CommonFuncs.FindKey(ref data, filter) > 0)
-                    {
-                        var info = new FileInfo(files[i]);
-                        string key = (UnityAssetsUtils.IsAlt ? CommonFuncs.GetFolder(info.FullName) : info.Name);
-
-                        Console.WriteLine($"{key[..Math.Min(key.Length, 36)],-36}  {(float)info.Length / 1024:N2} KB");
-                    }
-
-                    return;
-                });
+                int index = i;
+                tasks[index] = FindTask(files[index], filter);
             }
 
             await Task.WhenAll(tasks);
 
+            Console.WriteLine(string.Empty);
             UnityAssetsUtils.StopOperation();
             UnityAssetsUtils.Pause(true);
         }

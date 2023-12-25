@@ -64,6 +64,18 @@ namespace Utils.UnityAssets
         }
 
         /// <summary>
+        /// Optimized the display of a path to a fixed length
+        /// </summary>
+        public static string TrimFilePath(string path, int length)
+        {
+            if (path.Length <= length)
+                return path;
+
+            int half = (length - 1) / 2 - 1;
+            return $"{path[..half]}...{path[^half..]}";
+        }
+
+        /// <summary>
         /// Automatically detects if the WorkingDirectory is in Alt. structure
         /// </summary>
         /// <returns><b>True</b> if so;<br/><b>False</b> otherwise</returns>
