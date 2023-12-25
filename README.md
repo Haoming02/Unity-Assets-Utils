@@ -1,5 +1,5 @@
 <h1 align="center">Unity Assets Utils</h1>
-<p align="right">A series of utilities that assist in making datamining Unity assets faster and simpler.</p>
+<p align="center">A series of utilities that assist in making datamining Unity assets faster and simpler.</p>
 <p align="right"><b>v3</b></p>
 
 ## Intro
