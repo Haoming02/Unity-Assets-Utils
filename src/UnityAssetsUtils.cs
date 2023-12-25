@@ -120,7 +120,7 @@
                         break;
 
                     case AvailableModes.Separator:
-                        await Separator.Process();
+                        Separator.Process();
                         break;
 
                     case AvailableModes.Change_Directory:
