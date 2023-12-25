@@ -3,7 +3,7 @@
 namespace Utils.UnityAssets
 {
     /// <summary>
-    /// List out all assets that contain specified filter
+    /// List out all assets that contain the specified filter
     /// </summary>
     public static class FindFilter
     {
@@ -14,12 +14,12 @@ namespace Utils.UnityAssets
             string input = Console.ReadLine()?.Trim();
             byte[] filter = Encoding.UTF8.GetBytes(input);
 
-            Console.Write("\nRecursive [y/n]: ");
+            Console.Write("Recursive [y/n]: ");
             bool recursive = Console.ReadLine()?.Trim() != "n";
 
             UnityAssetsUtils.StartOperation();
 
-            var files = Directory.GetFiles(UnityAssetsUtils.WorkingDirectory, "*.*", (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly));
+            var files = Directory.GetFiles(UnityAssetsUtils.WorkingDirectory, "*.*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
             int l = files.Length;
 
             Console.WriteLine($"\n{(UnityAssetsUtils.IsAlt ? "[Folder Name]" : "[File Name]"),-36}  [File Size]");

@@ -1,12 +1,10 @@
 ﻿namespace Utils.UnityAssets
 {
     /// <summary>
-    /// Delete files already found in another cache Folder
+    /// Move files that already exist in a cache Folder
     /// </summary>
     public static class Dedupe
     {
-        private static string subfolder;
-
         public static async Task Process()
         {
             string cacheDirectory = SetCacheDirectory();
@@ -28,7 +26,7 @@
             UnityAssetsUtils.StartOperation();
 
             CacheReferenceFiles(cacheDirectory, out var cache);
-            CreateFolder();
+            CreateFolder(out var subfolder);
 
             var files = Directory.GetFiles(UnityAssetsUtils.WorkingDirectory);
             int l = files.Length;
@@ -41,8 +39,9 @@
 
                 tasks[index] = Task.Run(() =>
                 {
-                    if (cache.Contains(Path.GetFileName(files[i])))
-                        File.Move(files[i], Path.Combine(subfolder, Path.GetFileName(files[i])));
+                    string filename = Path.GetFileName(files[i]);
+                    if (cache.Contains(filename))
+                        File.Move(files[i], Path.Combine(subfolder, filename));
                 });
             }
 
@@ -53,16 +52,16 @@
             UnityAssetsUtils.Pause();
         }
 
-        private static void CacheReferenceFiles(string cacheDirectory, out List<string> cache)
+        private static void CacheReferenceFiles(string cacheDirectory, out HashSet<string> cache)
         {
-            cache = new List<string>();
-            var files = Directory.GetFiles(cacheDirectory);
+            cache = new HashSet<string>();
+            var files = Directory.EnumerateFiles(cacheDirectory);
 
             foreach (string file in files)
                 cache.Add(Path.GetFileName(file));
         }
 
-        private static void CreateFolder()
+        private static void CreateFolder(out string subfolder)
         {
             subfolder = Path.Combine(UnityAssetsUtils.WorkingDirectory, "duplicated");
             if (!Directory.Exists(subfolder))
@@ -75,18 +74,16 @@
             {
                 Console.Write("Enter the Path to Assets (Enter \"return\" to Cancel): ");
 
-                string input = Console.ReadLine()?.Trim();
+                string input = Console.ReadLine()?.Trim('"').Trim();
 
                 if (input.Length > UnityAssetsUtils.SAFE_GUARD && Directory.Exists(input))
                     return input;
-                else if (input.ToLower().Contains("return"))
+                else if (input.ToLower().Equals("return"))
                     return null;
-                else
-                {
-                    Console.WriteLine("Invalid Path...");
-                    UnityAssetsUtils.Pause();
-                    Console.Clear();
-                }
+
+                Console.WriteLine("Invalid Path...");
+                UnityAssetsUtils.Pause();
+                Console.Clear();
             } while (true);
         }
     }
