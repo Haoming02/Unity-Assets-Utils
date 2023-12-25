@@ -1,9 +1,9 @@
 import os
-THRESHOLD = 2048
+THRESHOLD = 4096
 
 def process(path:str):
     for FILE in os.listdir(path):
-        if '.py' in FILE or not os.path.isfile(os.path.join(path, FILE)):
+        if not os.path.isfile(os.path.join(path, FILE)):
             continue
 
         with open(os.path.join(path, FILE), 'rb+') as BYTES:
@@ -11,7 +11,7 @@ def process(path:str):
 
             DATA = BYTES.read()
 
-            limit = min(len(DATA), THRESHOLD)
+            limit = min(len(DATA) - 7, THRESHOLD)
             pos = 0
 
             for i in range(limit):
@@ -33,7 +33,7 @@ def process(path:str):
 
 def main():
     path = str(input('Path to Assets: '))
-    process(path)
+    process(path.strip('"').strip())
 
 if __name__ == '__main__':
     main()

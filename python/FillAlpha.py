@@ -3,19 +3,26 @@ import os
 
 def process(path:str):
 	if os.path.isfile(path):
-		rgb = cv2.imread(path, cv2.IMREAD_COLOR)
-		cv2.imwrite(path, rgb)
+		try:
+			rgb = cv2.imread(path, cv2.IMREAD_COLOR)
+			cv2.imwrite(path, rgb)
+		except cv2.error:
+			print(f'"{path}" is not an image...')
+
 	else:
 		for FILE in os.listdir(path):
-			if '.py' in FILE or not os.path.isfile(os.path.join(path, FILE)):
+			if not os.path.isfile(os.path.join(path, FILE)):
 				continue
 
-			rgb = cv2.imread(f'{path}/{FILE}', cv2.IMREAD_COLOR)
-			cv2.imwrite(f'{path}/{FILE}', rgb)
+			try:
+				rgb = cv2.imread(os.path.join(path, FILE), cv2.IMREAD_COLOR)
+				cv2.imwrite(os.path.join(path, FILE), rgb)
+			except cv2.error:
+				continue
 
 def main():
     path = str(input('Path to Assets: '))
-    process(path)
+    process(path.strip('"').strip())
 
 if __name__ == '__main__':
     main()
