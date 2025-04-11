@@ -1,14 +1,14 @@
 import os
 
-def process(CHECK:str, CACHE:str):
-	for FILE in os.listdir(CHECK):
-		if os.path.exists(os.path.join(CACHE, FILE)):
-			os.remove(os.path.join(CHECK, FILE))
 
-def main():
-	CHECK = str(input('Enter new Path: '))
-	CACHE = str(input('Enter old Path: '))
-	process(CHECK.strip('"').strip(), CACHE.strip('"').strip())
+def process(new_path: str, old_path: str):
+    assert os.path.isdir(new_path) and os.path.isdir(old_path)
+    for file in os.listdir(new_path):
+        if os.path.isfile(os.path.join(old_path, file)):
+            os.remove(os.path.join(new_path, file))
 
-if __name__ == '__main__':
-    main()
+
+if __name__ == "__main__":
+    new_path = str(input("New Target Folder: "))
+    old_path = str(input("Old Cached Folder: "))
+    process(new_path.strip().strip('"').strip(), old_path.strip().strip('"').strip())

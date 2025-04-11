@@ -1,28 +1,35 @@
-import cv2
-import os
+import os.path
+from os import listdir
 
-def process(path:str):
-	if os.path.isfile(path):
-		try:
-			rgb = cv2.imread(path, cv2.IMREAD_COLOR)
-			cv2.imwrite(path, rgb)
-		except cv2.error:
-			print(f'"{path}" is not an image...')
+from PIL import Image, UnidentifiedImageError
 
-	else:
-		for FILE in os.listdir(path):
-			if not os.path.isfile(os.path.join(path, FILE)):
-				continue
 
-			try:
-				rgb = cv2.imread(os.path.join(path, FILE), cv2.IMREAD_COLOR)
-				cv2.imwrite(os.path.join(path, FILE), rgb)
-			except cv2.error:
-				continue
+def _listfiles(path: str) -> list[str]:
+    files = []
 
-def main():
-    path = str(input('Path to Assets: '))
-    process(path.strip('"').strip())
+    for obj in (os.path.join(path, obj) for obj in listdir(path)):
+        if os.path.isdir(obj):
+            files.extend(_listfiles(obj))
+        else:
+            files.append(obj)
 
-if __name__ == '__main__':
-    main()
+    return files
+
+
+def process(path: str):
+    if os.path.isdir(path):
+        files = _listfiles(path)
+    else:
+        files = [path]
+
+    for file in files:
+        try:
+            img: Image.Image = Image.open(file)
+            img.convert("RGB").save(path)
+        except UnidentifiedImageError:
+            continue
+
+
+if __name__ == "__main__":
+    path = str(input("Path to Assets: "))
+    process(path.strip().strip('"').strip())

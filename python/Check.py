@@ -1,27 +1,37 @@
-import os
+import os.path
+from os import listdir
 
-def process(PATH:str, FILTER:str, RECUR:bool = True):
-    for FILE in os.listdir(PATH):
-        if os.path.isdir(os.path.join(PATH, FILE)):
-            if RECUR is True:
-                process(os.path.join(PATH, FILE), FILTER, True)
-            else:
-                continue
 
+def _listfiles(path: str) -> list[str]:
+    files = []
+
+    for obj in (os.path.join(path, obj) for obj in listdir(path)):
+        if os.path.isdir(obj):
+            files.extend(_listfiles(obj))
         else:
-            with open(os.path.join(PATH, FILE), 'rb') as in_file:
-                asset = in_file.read()
+            files.append(obj)
 
-                if FILTER.encode('utf-8') in asset:
-                    file_stats = os.stat(f'{PATH}/{FILE}')
-                    print(f'{FILE}: {file_stats.st_size / 1024:.2f} KB')
+    return files
 
-def main():
-    PATH = str(input('Path to Assets: '))
-    FILTER = str(input('Enter Filter: '))
 
-    print('')
-    process(PATH.strip('"').strip(), FILTER)
+def process(path: str, key: str):
+    if os.path.isdir(path):
+        files = _listfiles(path)
+    else:
+        files = [path]
 
-if __name__ == '__main__':
-    main()
+    for file in files:
+        with open(file, "rb") as f:
+            asset = f.read()
+
+        if key.encode("utf-8") in asset:
+            file_stats = os.stat(file)
+            print(f"[{file_stats.st_size / 1024:.2f} KB] {file}")
+
+
+if __name__ == "__main__":
+    path = str(input("Path to Assets: "))
+    key = str(input("Enter Filter: "))
+
+    print("")
+    process(path.strip().strip('"').strip(), key)

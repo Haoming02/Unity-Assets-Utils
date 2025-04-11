@@ -1,5 +1,8 @@
-.vs/
-bin/
-obj/
-Properties/
+.vs
+.vscode
+.vsconfig
+
+bin
+obj
+Properties
 *.csproj.user

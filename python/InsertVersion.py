@@ -1,44 +1,50 @@
+import os.path
+from os import listdir
+
 import UnityPy
-import os
 
-try:
-    major, minor, rev = UnityPy.__version__.split('.')
-    assert(int(major) == 1)
-    assert(int(minor) >= 10)
-    assert(int(rev) >= 5)
-except AssertionError:
-    print('Old version of UnityPy detected. This function might not be supported...')
 
-def verify_header(path:str):
-    with open(path, 'rb') as FILE:
-        header = FILE.read(7)
+def _verify_header(path: str) -> bool:
+    with open(path, "rb") as file:
+        header = file.read(7)
 
-    return header == b'UnityFS'
+    return header == b"UnityFS"
 
-def process(path:str, version:str):
-    for FILE in os.listdir(path):
-        if not os.path.isfile(os.path.join(path, FILE)):
+
+def _listfiles(path: str) -> list[str]:
+    files = []
+
+    for obj in (os.path.join(path, obj) for obj in listdir(path)):
+        if os.path.isdir(obj):
+            files.extend(_listfiles(obj))
+        else:
+            files.append(obj)
+
+    return files
+
+
+def process(path: str, version: str):
+    assert os.path.isdir(path)
+    files = _listfiles(path)
+
+    for file in files:
+        if not _verify_header(file):
             continue
 
-        if not verify_header(os.path.join(path, FILE)):
-            continue
-
-        env = UnityPy.load(os.path.join(path, FILE))
+        env = UnityPy.load(file)
 
         for obj in env.assets:
             obj.unity_version = version
             try:
                 obj.save()
-            except:
+            except Exception:
                 pass
 
-        with open(os.path.join(path, FILE), "wb") as f:
+        with open(file, "wb") as f:
             f.write(env.file.save())
 
-def main():
-    path = str(input('Path to Assets: '))
-    ver = str(input('Unity Version: '))
-    process(path.strip('"').strip(), ver)
 
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    path = str(input("Path to Assets: "))
+    ver = str(input("Unity Version: "))
+    process(path.strip().strip('"').strip(), ver)

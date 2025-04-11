@@ -1,39 +1,46 @@
-import os
-THRESHOLD = 4096
+import os.path
+from concurrent.futures import ThreadPoolExecutor
+from os import listdir
 
-def process(path:str):
-    for FILE in os.listdir(path):
-        if not os.path.isfile(os.path.join(path, FILE)):
-            continue
+HEADER = b"UnityFS"
 
-        with open(os.path.join(path, FILE), 'rb+') as BYTES:
-            secondPass = False
 
-            DATA = BYTES.read()
+def _trim(file: str):
+    with open(file, "rb") as fs:
+        data = fs.read()
 
-            limit = min(len(DATA) - 7, THRESHOLD)
-            pos = 0
+    chunks = data.split(HEADER, 2)
 
-            for i in range(limit):
-                BYTES.seek(i)
-                byte = BYTES.read(7)
+    if len(chunks) == 1:
+        return
 
-                if byte == b'UnityFS':
-                    if not secondPass:
-                        pos = BYTES.tell() - 7
-                        secondPass = True
-                    else:
-                        pos = BYTES.tell() - 7
-                        break
+    if len(chunks) == 2 and data.startswith(HEADER):
+        return
 
-            if not pos == 0:
-                BYTES.seek(0)
-                BYTES.write(DATA[pos:])
-                BYTES.truncate()
+    with open(file, "wb") as fs:
+        fs.write(HEADER + chunks[-1])
 
-def main():
-    path = str(input('Path to Assets: '))
-    process(path.strip('"').strip())
 
-if __name__ == '__main__':
-    main()
+def _listfiles(path: str) -> list[str]:
+    files = []
+
+    for obj in (os.path.join(path, obj) for obj in listdir(path)):
+        if os.path.isdir(obj):
+            files.extend(_listfiles(obj))
+        else:
+            files.append(obj)
+
+    return files
+
+
+def process(path: str):
+    assert os.path.isdir(path)
+    files = _listfiles(path)
+
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        executor.map(_trim, files)
+
+
+if __name__ == "__main__":
+    path = str(input("Path to Assets: "))
+    process(path.strip().strip('"').strip())
