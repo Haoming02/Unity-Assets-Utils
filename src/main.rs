@@ -1,5 +1,6 @@
 use std::io;
 use std::io::Write;
+use std::path::{Path, PathBuf};
 
 mod byte_trimmer;
 mod filter_content;
@@ -30,23 +31,54 @@ fn list_functions() {
     io::stdout().flush().unwrap();
 }
 
+fn get_project_path() -> PathBuf {
+    let mut project_path = String::new();
+    loop {
+        clearscreen::clear().unwrap();
+        title();
+
+        print!("\nEnter the Path to Assets: ");
+        io::stdout().flush().unwrap();
+
+        if io::stdin().read_line(&mut project_path).is_ok() {
+            let path = Path::new(project_path.trim());
+            if path.exists() && path.is_dir() {
+                return path.to_path_buf();
+            }
+        }
+
+        println!("Invalid Path...");
+        project_path.clear();
+
+        println!("Press ENTER to Continue...");
+        while io::stdin().read_line(&mut project_path).is_ok() {
+            if project_path.trim() == "" {
+                break;
+            }
+            project_path.clear();
+        }
+    }
+}
+
 fn main() {
     let mut input = String::new();
+    let project_path = get_project_path();
 
     loop {
         clearscreen::clear().unwrap();
         title();
 
+        println!("Working Directory: {}\n", project_path.display());
         list_functions();
 
         if io::stdin().read_line(&mut input).is_ok() {
             match input.trim().parse::<i32>() {
                 Ok(choice) => match choice {
                     0 => break,
-                    1 => byte_trimmer::process(),
-                    2 => flatten_folder::process(),
-                    3 => filter_content::process(),
-                    4 => filter_filename::process(),
+                    1 => byte_trimmer::process(&project_path),
+                    2 => flatten_folder::process(&project_path),
+                    3 => filter_content::process(&project_path),
+                    4 => filter_filename::process(&project_path),
                     _ => println!("Invalid ID..."),
                 },
                 Err(_) => {
