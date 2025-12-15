@@ -50,7 +50,7 @@ fn get_project_path() -> PathBuf {
         println!("Invalid Path...");
         project_path.clear();
 
-        println!("Press ENTER to Continue...");
+        println!("\nPress ENTER to Continue...");
         while io::stdin().read_line(&mut project_path).is_ok() {
             if project_path.trim() == "" {
                 break;
@@ -90,7 +90,7 @@ fn main() {
         }
 
         input.clear();
-        println!("Press ENTER to Continue...");
+        println!("\nPress ENTER to Continue...");
         while io::stdin().read_line(&mut input).is_ok() {
             if input.trim() == "" {
                 break;
