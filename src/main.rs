@@ -40,14 +40,26 @@ fn get_project_path() -> PathBuf {
         print!("\nEnter the Path to Assets: ");
         io::stdout().flush().unwrap();
 
+        let mut too_short = false;
+
         if io::stdin().read_line(&mut project_path).is_ok() {
-            let path = Path::new(project_path.trim());
-            if path.exists() && path.is_dir() {
-                return path.to_path_buf();
+            if project_path.len() < 6 {
+                too_short = true;
+            } else {
+                let path = Path::new(project_path.trim());
+                if path.exists() && path.is_dir() {
+                    return path.to_path_buf();
+                }
             }
         }
 
-        println!("Invalid Path...");
+        if too_short {
+            // Prevent accidentally modifying a system root folder
+            println!("Path is too Short...");
+        } else {
+            println!("Invalid Path...");
+        }
+
         project_path.clear();
 
         println!("\nPress ENTER to Continue...");
