@@ -1,22 +1,12 @@
 use std::fs;
-use std::io;
-use std::io::Write;
 use std::path::Path;
 use walkdir::WalkDir;
 
+use crate::utils;
+
 pub fn process(project_path: &Path) {
-    print!("\nEnter the search string: ");
-    io::stdout().flush().unwrap();
-
-    let search_bytes;
-    let mut search_string = String::new();
-
-    if io::stdin().read_line(&mut search_string).is_ok() {
-        search_bytes = search_string.trim().as_bytes();
-    } else {
-        println!("Invalid Input...");
-        return;
-    }
+    let search_string = utils::prompt("Enter the search string");
+    let search_bytes = search_string.trim().as_bytes();
 
     if search_bytes.is_empty() {
         println!("Empty Input...");

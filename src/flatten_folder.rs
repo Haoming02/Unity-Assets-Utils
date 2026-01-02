@@ -1,20 +1,17 @@
 use std::fs;
-use std::io;
-use std::io::Write;
 use std::path::Path;
 use walkdir::WalkDir;
 
+use crate::utils;
+
 pub fn process(project_path: &Path) {
-    println!(
+    print!(
         "\n!!! Type \"YES\" to flatten folder \"{}\" !!!",
         project_path.display()
     );
-    print!("Confirm: ");
-    io::stdout().flush().unwrap();
 
-    let mut confirmation = String::new();
-
-    if io::stdin().read_line(&mut confirmation).is_err() || confirmation.trim() != "YES" {
+    let confirmation = utils::prompt("Confirm");
+    if confirmation.trim() != "YES" {
         println!("Operation Canceled...");
         return;
     }

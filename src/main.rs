@@ -1,11 +1,10 @@
-use std::io;
-use std::io::Write;
 use std::path::{Path, PathBuf};
 
 mod byte_trimmer;
 mod filter_content;
 mod filter_filename;
 mod flatten_folder;
+mod utils;
 
 fn title() {
     const TITLE: &'static str = r#"
@@ -18,38 +17,32 @@ fn title() {
                       __/ |
                      |___/
     "#;
-    println!("{}", TITLE);
+    println!("{}\n", TITLE);
 }
 
-fn list_functions() {
+fn list_functions() -> String {
     println!("[0] Exit");
     println!("[1] Byte Trimmer");
     println!("[2] Flatten Folder");
     println!("[3] Filter by Content");
     println!("[4] Filter by Filename");
-    print!("\nChoose a Function: ");
-    io::stdout().flush().unwrap();
+    return utils::prompt("Choose a Function");
 }
 
 fn get_project_path() -> PathBuf {
-    let mut project_path = String::new();
     loop {
         clearscreen::clear().unwrap();
         title();
 
-        print!("\nEnter the Path to Assets: ");
-        io::stdout().flush().unwrap();
-
+        let path = utils::prompt("Enter the Path to Assets");
         let mut too_short = false;
 
-        if io::stdin().read_line(&mut project_path).is_ok() {
-            if project_path.len() < 6 {
-                too_short = true;
-            } else {
-                let path = Path::new(project_path.trim());
-                if path.exists() && path.is_dir() {
-                    return path.to_path_buf();
-                }
+        if path.len() < 6 {
+            too_short = true;
+        } else {
+            let path = Path::new(path.trim());
+            if path.exists() && path.is_dir() {
+                return path.to_path_buf();
             }
         }
 
@@ -60,20 +53,11 @@ fn get_project_path() -> PathBuf {
             println!("Invalid Path...");
         }
 
-        project_path.clear();
-
-        println!("\nPress ENTER to Continue...");
-        while io::stdin().read_line(&mut project_path).is_ok() {
-            if project_path.trim() == "" {
-                break;
-            }
-            project_path.clear();
-        }
+        utils::pause();
     }
 }
 
 fn main() {
-    let mut input = String::new();
     let project_path = get_project_path();
 
     loop {
@@ -81,33 +65,22 @@ fn main() {
         title();
 
         println!("Working Directory: {}\n", project_path.display());
-        list_functions();
+        let input = list_functions();
 
-        if io::stdin().read_line(&mut input).is_ok() {
-            match input.trim().parse::<i32>() {
-                Ok(choice) => match choice {
-                    0 => break,
-                    1 => byte_trimmer::process(&project_path),
-                    2 => flatten_folder::process(&project_path),
-                    3 => filter_content::process(&project_path),
-                    4 => filter_filename::process(&project_path),
-                    _ => println!("Invalid ID..."),
-                },
-                Err(_) => {
-                    println!("Invalid ID...");
-                }
+        match input.trim().parse::<i32>() {
+            Ok(choice) => match choice {
+                0 => break,
+                1 => byte_trimmer::process(&project_path),
+                2 => flatten_folder::process(&project_path),
+                3 => filter_content::process(&project_path),
+                4 => filter_filename::process(&project_path),
+                _ => println!("Invalid ID..."),
+            },
+            Err(_) => {
+                println!("Invalid ID...");
             }
-        } else {
-            println!("Invalid ID...");
         }
 
-        input.clear();
-        println!("\nPress ENTER to Continue...");
-        while io::stdin().read_line(&mut input).is_ok() {
-            if input.trim() == "" {
-                break;
-            }
-            input.clear();
-        }
+        utils::pause();
     }
 }
