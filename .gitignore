@@ -2,16 +2,6 @@
 .vscode
 .vsconfig
 
-bin
-obj
-Properties
-*.csproj.user
-
 debug
+release
 target
-
-**/*.rs.bk
-
-*.pdb
-
-**/mutants.out*/
